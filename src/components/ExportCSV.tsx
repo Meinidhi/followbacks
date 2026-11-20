@@ -11,15 +11,19 @@ interface ExportCSVProps {
 export function ExportCSV({ accounts, category }: ExportCSVProps) {
   const [justExported, setJustExported] = useState(false);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     if (accounts.length === 0) {
       return;
     }
-    downloadAccountsCsv(accounts, category);
-    setJustExported(true);
-    window.setTimeout(() => {
-      setJustExported(false);
-    }, 2000);
+    try {
+      await downloadAccountsCsv(accounts, category);
+      setJustExported(true);
+      window.setTimeout(() => {
+        setJustExported(false);
+      }, 2000);
+    } catch {
+      // Ignore if the user dismissed the native Android share sheet
+    }
   };
 
   const fileName = CATEGORY_CSV_FILENAMES[category];

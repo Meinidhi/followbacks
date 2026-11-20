@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import type { AccountEntry, ResultCategory } from '../types/analyzer';
 
 export const CATEGORY_CSV_FILENAMES: Record<ResultCategory, string> = {
@@ -65,15 +68,35 @@ export function revokeAllObjectUrls(): void {
 }
 
 /**
- * Triggers a browser download of the generated CSV using Blob and URL.createObjectURL,
- * and revokes the object URL cleanly.
+ * Triggers CSV export:
+ * - On native Android/iOS (Capacitor APK), writes the UTF-8 CSV to cache and opens the native Share/Save sheet.
+ * - On web browsers, downloads via Blob and URL.createObjectURL and revokes the object URL cleanly.
  */
-export function downloadAccountsCsv(
+export async function downloadAccountsCsv(
   accounts: AccountEntry[],
   category: ResultCategory
-): string {
+): Promise<string> {
   const csvContent = generateAccountsCsv(accounts);
   const fileName = CATEGORY_CSV_FILENAMES[category];
+
+  if (Capacitor.isNativePlatform()) {
+    const written = await Filesystem.writeFile({
+      path: fileName,
+      data: csvContent,
+      directory: Directory.Cache,
+      encoding: Encoding.UTF8,
+    });
+
+    await Share.share({
+      title: fileName,
+      text: `FOLLOWBACK CSV export (${accounts.length} accounts)`,
+      url: written.uri,
+      dialogTitle: 'Save or share CSV export',
+    });
+
+    return fileName;
+  }
+
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const objectUrl = URL.createObjectURL(blob);
   activeObjectUrls.add(objectUrl);
