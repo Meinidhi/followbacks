@@ -1,0 +1,8 @@
+{
+  "name": "FOLLOWBACK – Instagram Follow Analyzer",
+  "description": "Know who follows you back. Private, accurate, browser-local Instagram follow analyzer powered by your official JSON data export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
